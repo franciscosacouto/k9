@@ -1,7 +1,7 @@
 import socket
 
 # Define server address and port
-SERVER_IP = '127.0.0.1'  # localhost
+SERVER_IP = '192.168.2.3'
 SERVER_PORT = 8000
 
 # Create a socket object
@@ -14,15 +14,11 @@ try:
 
     # Communication loop
     while True:
-        # Receive data from the server
-        data = client_socket.recv(1024).decode()
+        # Send message to the server
+        message = input("Enter a message to send to server: ")
+        client_socket.send(message.encode())
 
-        if not data:
-            break
-
-        # Display received message
-        print("Server:", data)
-
+        
 except ConnectionResetError:
     print("Connection to server closed unexpectedly.")
 
