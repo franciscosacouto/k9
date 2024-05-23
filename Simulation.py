@@ -20,19 +20,22 @@ fs=512
 window_seconds = 5
 window_size = fs * window_seconds
 
-#Definição de parâmetros dos filtros
-notch_freq = 50.0 
-quality_factor = 40.0
-highcut = 20
-order = 8
-lowcut = 5
+#frequências dos estímulos
+frequencies = [7, 11, 13, 17]
 
-sos = signal.iirfilter(order, highcut, btype='lowpass', analog=False, ftype='butter', fs=fs, output='sos')
-b_notch, a_notch = signal.iirnotch(notch_freq, quality_factor, fs)
-b_hp, a_hp = signal.butter(order, lowcut, btype='highpass', fs=fs)
-
-#Função para aplicar filtros
+#Função para aplicar filtros (Lowpass & HighPass & Notch)
 def filter(data):
+    #Definição de parâmetros dos filtros
+    notch_freq = 50.0 
+    quality_factor = 40.0
+    highcut = 20
+    order = 8
+    lowcut = 5
+
+    sos = signal.iirfilter(order, highcut, btype='lowpass', analog=False, ftype='butter', fs=fs, output='sos')
+    b_notch, a_notch = signal.iirnotch(notch_freq, quality_factor, fs)
+    b_hp, a_hp = signal.butter(order, lowcut, btype='highpass', fs=fs)
+
     filtrado = {}
     for key, dfs in original.items():
         filtrado[key] = []
@@ -45,7 +48,7 @@ def filter(data):
             filtrado[key].append(df_filtrado)
     return filtrado
 
-#Função para extrair Oz
+#Função para extrair dados do canal Oz
 def get_oz(filtrado):
     oz_filtered = {}
     for key, dfs in filtrado.items():
@@ -82,6 +85,7 @@ def get_data(directory):
                         original[key] = []
                     original[key].append(df)
     
+    #Tirar o primeiro e último meio segundo de cada amostra
     num_samples_to_trim = int(0.5 * fs)
     for key, dfs in original.items():
         trimmed_dfs = []
@@ -94,34 +98,27 @@ def get_data(directory):
 
 # Função para calcular as correlações
 def calculate_correlations(matrix, reference_signals):
-    cca = CCA(n_components=1)  # Defina o número de componentes canônicos
+    cca = CCA(n_components=1)  #número de componentes canônicos
     Correlation = []
 
     for ref_signal in reference_signals:
-        # Ajustar o CCA aos dados
         cca.fit(matrix, ref_signal)
-        # Transformar os dados usando o CCA
         x1, x2 = cca.transform(matrix, ref_signal)
         corr = np.corrcoef(x1.T, x2.T)[0, 1]
         Correlation.append(corr)
     
     return Correlation
 
-def simulation(directory):
-    original = get_data(directory)
-    filtered = filter(original)
-    oz=get_oz(filtered)
-
-    # Get the first key (assuming keys represent trial names or similar)
-    first_key = list(oz.keys())[0]
-    first_matrix = np.array(oz[first_key])
+def generate_ref(frequencies, data):
+    #Extrair primeiro dado para definir legth das referências
+    first_key = list(data.keys())[0]
+    first_matrix = np.array(data[first_key])
     X = first_matrix.T
 
-    # Creating the time series windows
-    window_size = X.shape[0] # Assuming you want the same window size as the first matrix's rows
+    window_size = X.shape[0]
     t = np.linspace(0, 4, window_size, endpoint=False)
 
-    # Generating sine and cosine reference signals
+    # Gerar sinais de referência com seno e cosseno
     frequencies = [7, 11, 13, 17]
     reference_signals = []
     for freq in frequencies:
@@ -130,6 +127,15 @@ def simulation(directory):
         reference_signals.append(sine_wave)
         reference_signals.append(cosine_wave)
     
+    return reference_signals
+
+#Simulação
+def simulation(directory):
+    original = get_data(directory)
+    filtered = filter(original)
+    oz=get_oz(filtered)
+    reference = generate_ref(frequencies,oz)
+
     all_correlations = {}
 
     for key in oz:
@@ -146,14 +152,13 @@ def simulation(directory):
         plt.pause(0.05)
 
         matrix = np.array(oz[key]).T
-        correlations = calculate_correlations(matrix, reference_signals)
+        correlations = calculate_correlations(matrix, reference)
         max_correlation_index = np.argmax(correlations)  # Índice da coluna com o valor máximo
         all_correlations[key] = {'correlations': correlations, 'max_correlation_index': max_correlation_index // 2 + 1}
 
         print("Predicted label:", max_correlation_index // 2)
-        time.sleep(5)
+        time.sleep(10)
 
 
 while True: # Executar a função para processar os arquivos e plotar em tempo real
     simulation(directory)
-    time.sleep(5)  # Espera por 5 segundos antes de verificar novamente os arquivos
