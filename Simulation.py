@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from sklearn.cross_decomposition import CCA
 import time
+import socket
 
 
 # Path para o file com os dados
@@ -129,6 +130,17 @@ def generate_ref(frequencies, data):
     
     return reference_signals
 
+
+# Server configuration
+SERVER_IP = '192.168.2.3'  # Replace with your server's IP address
+SERVER_PORT = 8000      # Replace with your server's port number
+
+# Create a socket object
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect to the server
+client_socket.connect((SERVER_IP, SERVER_PORT))
+
 #Simulação
 def simulation(directory):
     original = get_data(directory)
@@ -156,6 +168,7 @@ def simulation(directory):
         max_correlation_index = np.argmax(correlations)  # Índice da coluna com o valor máximo
         all_correlations[key] = {'correlations': correlations, 'max_correlation_index': max_correlation_index // 2 + 1}
 
+        client_socket.sendall(str(max_correlation_index // 2 + 1).encode())
         print("Predicted label:", max_correlation_index // 2)
         time.sleep(10)
 
