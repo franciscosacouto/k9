@@ -1,4 +1,4 @@
-#Importação das bibliotecas
+#Libraries
 import numpy as np
 import os
 import pandas as pd
@@ -10,23 +10,23 @@ import time
 import socket
 
 
-# Path para o file com os dados
+# File path
 directory = "Data_trials"
 
-# Dicionário para armazenar a raw EEG
+# Dictionary for original data
 original = {}
 
-# Tamanho da window em segundos
+# Window size (seconds)
 fs=512
 window_seconds = 5
 window_size = fs * window_seconds
 
-#frequências dos estímulos
+#Stimulous frequency
 frequencies = [7, 11, 13, 17]
 
-#Função para aplicar filtros (Lowpass & HighPass & Notch)
+#Filters function (Lowpass & HighPass & Notch)
 def filter(data):
-    #Definição de parâmetros dos filtros
+    #Filters parameters
     notch_freq = 50.0 
     quality_factor = 40.0
     highcut = 20
@@ -49,7 +49,7 @@ def filter(data):
             filtrado[key].append(df_filtrado)
     return filtrado
 
-#Função para extrair dados do canal Oz
+#Channel Oz extraction function
 def get_oz(filtrado):
     oz_filtered = {}
     for key, dfs in filtrado.items():
@@ -60,33 +60,27 @@ def get_oz(filtrado):
     return oz_filtered
 
 def get_data(directory):
-    # Iterar através de cada pasta de participante
     for participant_folder in os.listdir(directory):
         participant_path = os.path.join(directory, participant_folder)
         if os.path.isdir(participant_path):
-            participant_number = participant_folder[1:]  # Extrair número do participante do nome da pasta
+            participant_number = participant_folder[1:]  
 
-            # Iterar através dos arquivos MATLAB na pasta do participante
             for file_name in os.listdir(participant_path):
                 if file_name.endswith(".mat") and not file_name.endswith(("5.mat", "6.mat")):
                     file_path = os.path.join(participant_path, file_name)
 
-                    # Carregar arquivo MATLAB
                     mat_data = loadmat(file_path)
 
-                    # Selecionar a key com o nome do file
                     keys = mat_data.keys()
                     key = list(keys)[3]
 
-                    # Criar DataFrame a partir dos dados; .T para transformar linhas em colunas
                     df = pd.DataFrame(mat_data[key].T, columns=['TimeStamps','PO3', 'POz', 'PO4', 'O1', 'Oz', 'O2'])
 
-                    # Adicionar os dados ao dicionário usando o nome da variável como chave
                     if key not in original:
                         original[key] = []
                     original[key].append(df)
     
-    #Tirar o primeiro e último meio segundo de cada amostra
+    #Trim data
     num_samples_to_trim = int(0.5 * fs)
     for key, dfs in original.items():
         trimmed_dfs = []
@@ -97,9 +91,9 @@ def get_data(directory):
 
     return original
 
-# Função para calcular as correlações
+# Correlations function
 def calculate_correlations(matrix, reference_signals):
-    cca = CCA(n_components=1)  #número de componentes canônicos
+    cca = CCA(n_components=1)  #Canonic components number
     Correlation = []
 
     for ref_signal in reference_signals:
@@ -111,7 +105,6 @@ def calculate_correlations(matrix, reference_signals):
     return Correlation
 
 def generate_ref(frequencies, data):
-    #Extrair primeiro dado para definir legth das referências
     first_key = list(data.keys())[0]
     first_matrix = np.array(data[first_key])
     X = first_matrix.T
@@ -119,7 +112,6 @@ def generate_ref(frequencies, data):
     window_size = X.shape[0]
     t = np.linspace(0, 4, window_size, endpoint=False)
 
-    # Gerar sinais de referência com seno e cosseno
     frequencies = [7, 11, 13, 17]
     reference_signals = []
     for freq in frequencies:
@@ -141,7 +133,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Connect to the server
 client_socket.connect((SERVER_IP, SERVER_PORT))
 
-#Simulação
+#Simulation function
 def simulation(directory):
     original = get_data(directory)
     filtered = filter(original)
@@ -165,7 +157,7 @@ def simulation(directory):
 
         matrix = np.array(oz[key]).T
         correlations = calculate_correlations(matrix, reference)
-        max_correlation_index = np.argmax(correlations)  # Índice da coluna com o valor máximo
+        max_correlation_index = np.argmax(correlations)
         all_correlations[key] = {'correlations': correlations, 'max_correlation_index': max_correlation_index // 2 + 1}
 
         client_socket.sendall(str(max_correlation_index // 2 + 1).encode())
@@ -173,5 +165,5 @@ def simulation(directory):
         time.sleep(10)
 
 
-while True: # Executar a função para processar os arquivos e plotar em tempo real
+while True:
     simulation(directory)
