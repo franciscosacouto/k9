@@ -261,6 +261,7 @@ class Control:
                 self.point[3*i][1]=Y1
                 self.point[1+i][0]=X2+10
                 self.point[1+i][1]=Y2
+
         elif move_order == 'Attitude Angle': 
             for i in range(2):
                 self.point[3-i][0]=pos[0,1+2*i]+10
