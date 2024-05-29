@@ -50,7 +50,7 @@ def execute_action(input_data):
     global tilt
     global legs
     led.colorWipe(led.strip,Color(255,0,0))
-
+    #move up 
     if input_data == '0':
         for i in range(0,180):
             servo.setServoAngle(2,i/3)
@@ -72,9 +72,9 @@ def execute_action(input_data):
         tilt = 0
         legs = 0
         up = 0
-
+#Move up and down
     elif input_data == '1': 
-        if up == 0:#bem
+        if up == 0:
             for i in range(0,180):
                 servo.setServoAngle(2,i*2/3)
                 servo.setServoAngle(3,i)
@@ -108,7 +108,7 @@ def execute_action(input_data):
             up = 0    
         led.colorWipe(led.strip,Color(0,255,0))
     
-    
+    #Move Head
     elif input_data == '2':
         if head == 0:
             for i in range(0,120): 
@@ -121,6 +121,8 @@ def execute_action(input_data):
                 time.sleep(0.03)
             head = 0    
         led.colorWipe(led.strip,Color(0,255,0))
+
+        # Elevate legs and head
 
     elif input_data == '3':
         if legs == 0:
@@ -157,6 +159,8 @@ def execute_action(input_data):
             legs = 0    
         led.colorWipe(led.strip,Color(0,255,0))
 
+
+        #Tilt
     elif input_data == '4':
             if tilt == 0:
                 for i in range(0,180):
