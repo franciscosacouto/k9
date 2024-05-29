@@ -1,9 +1,45 @@
 import socket
-import time 
-import Control
-import Servo
-import Ultrasonic 
-import Buzzer
+from Buzzer import *
+from Control import *
+from Servo import *
+from time import *
+from Ultrasonic import *
+from Led import *
+
+
+# Define server address and port
+SERVER_IP = '127.0.0.1'  # localhost
+SERVER_PORT = 8000
+
+# Create a socket object
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+    # Connect to the server
+    client_socket.connect((SERVER_IP, SERVER_PORT))
+    print("Connected to server on port", SERVER_PORT)
+
+    # Communication loop
+    while True:
+        # Receive data from the server
+        data = client_socket.recv(1024).decode()
+
+        if not data:
+            break
+
+        # Display received message
+        print("Server:", data)
+
+except ConnectionResetError:
+    print("Connection to server closed unexpectedly.")
+
+finally:
+    # Close the connection
+    client_socket.close()
+
+
+
+
 
 control = Control()
 sonic = Ultrasonic()
@@ -11,13 +47,14 @@ buzzer = Buzzer()
 servo = Servo()
 
 # meter as cenas de wifi para conectarem 
-
+led = Led()
+led.colorWipe(led.strip, Color(255, 0, 0))
 #verificar 
 Connection = True
 buzzer.run("0")
 input= 0
 print(Connection)
-while Connection:
+while True:
     buzzer.run("1")
     time.sleep(1)
     buzzer.run("0")
