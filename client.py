@@ -1,7 +1,9 @@
 import socket
 
+
+## CLIENT
 # Define server address and port
-SERVER_IP = '192.168.2.3'  # localhost
+SERVER_IP = '192.168.2.3' 
 SERVER_PORT = 8000
 
 # Create a socket object
@@ -34,3 +36,5 @@ finally:
     # Close the connection
     client_socket.close()
     print("Connection closed.")
+
+    

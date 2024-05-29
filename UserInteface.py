@@ -93,21 +93,6 @@ def main():
 
     current_time = pygame.time.get_ticks()
 
-    # default_colored_square_color = BLACK
-    # color_squares = []
-
-    # square_info = [
-    #     {"rect": pygame.Rect(screen_width / 32.4 - screen_width / 530, screen_height / 20 - screen_height / 250, screen_width / 5, screen_width / 5), "default_color": default_colored_square_color, "id": "1"},
-    #     {"rect": pygame.Rect(screen_width / 32.4 - screen_width / 530, screen_height / 1.5384 - screen_height / 250, screen_width / 5, screen_width / 5), "default_color": default_colored_square_color, "id": "3"},
-    #     {"rect": pygame.Rect(screen_width / 1.3 - screen_width / 530, screen_height / 20 - screen_height / 250, screen_width / 5, screen_width / 5), "default_color": default_colored_square_color, "id": "4"},
-    #     {"rect": pygame.Rect(screen_width / 1.3 - screen_width / 530, screen_height / 1.5384 - screen_height / 250, screen_width / 5, screen_width / 5), "default_color": default_colored_square_color, "id": "2"},
-    #     {"rect": pygame.Rect(screen_width / 2.49 - screen_width / 530, screen_height / 2.857 - screen_height / 250, screen_width / 5, screen_width / 5), "default_color": default_colored_square_color, "id": "0"}
-    # ]
-
-    # for info in square_info:
-    #     color_square = ColorSwitchingSquare(info["rect"], info["default_color"])
-    #     color_squares.append({"square": color_square, "id": info["id"]})
-
     # Frequency of square show/hide (seconds)
     frequency = [7,11,13,17]
     delays = [500 / f for f in frequency]
